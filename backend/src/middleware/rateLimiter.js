@@ -12,8 +12,9 @@ const rateLimiter = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.log("Rate limit error", error);
-    next(error);
+    // Never block requests if the rate limiter backend is misconfigured/unavailable.
+    console.log("Rate limit error (skipping)", error?.message || error);
+    next();
   }
 };
 
