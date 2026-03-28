@@ -13,16 +13,25 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 const __dirname = path.resolve();
 
-// middleware
-const corsOrigins = [
+// middleware — localhost works in dev; live fails if browser origin isn't allowed.
+const corsAllowList = [
   process.env.CORS_ORIGIN,
   process.env.FRONTEND_URL,
   "http://localhost:5173",
+  "http://127.0.0.1:5173",
 ].filter(Boolean);
 
 app.use(
   cors({
-    origin: corsOrigins.length ? corsOrigins : true,
+    origin: (origin, cb) => {
+      if (!origin) return cb(null, true);
+      if (corsAllowList.includes(origin)) return cb(null, true);
+      // Vercel preview + production URLs (frontend on Vercel, API on Render)
+      if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) {
+        return cb(null, true);
+      }
+      cb(null, false);
+    },
     credentials: true,
   })
 );
