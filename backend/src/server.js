@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import fs from "fs";
 import path from "path";
 
 import notesRoutes from "./routes/notesRoutes.js";
@@ -46,11 +47,16 @@ app.use(rateLimiter);
 
 app.use("/api/notes", notesRoutes);
 
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+// Only when frontend is built next to backend (monorepo deploy). On Render with Root=backend,
+// ../frontend/dist does not exist — skip to avoid ENOENT; API-only is fine if UI is on Vercel.
+const frontendDist = path.join(__dirname, "../frontend/dist");
+const frontendIndex = path.join(frontendDist, "index.html");
+
+if (process.env.NODE_ENV === "production" && fs.existsSync(frontendIndex)) {
+  app.use(express.static(frontendDist));
 
   app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
+    res.sendFile(frontendIndex);
   });
 }
 

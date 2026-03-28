@@ -31,8 +31,6 @@ const NoteDetailPage = () => {
   }, [id]);
 
   const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete this note?")) return;
-
     try {
       await api.delete(`/notes/${id}`);
       toast.success("Note deleted");
